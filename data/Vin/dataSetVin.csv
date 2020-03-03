@@ -1,0 +1,10 @@
+participant,session,date,expName,frameRate,block,trialType,order,conflict,image,Response,CorrectAns,RespTime,ManmadeKeys,NaturalKeys
+Vin,2,2020_Mar_03_1147,Memory_script,60.105632403343755,2,Natural,-1,,N200,m,False,-2.0,"['M', 'm']","['Z', 'z']"
+Vin,2,2020_Mar_03_1147,Memory_script,60.105632403343755,2,Manmade,0,Incongruent,M200,m,True,0.7073001179996936,"['M', 'm']","['Z', 'z']"
+Vin,2,2020_Mar_03_1147,Memory_script,60.105632403343755,2,Manmade,1,,M66,m,True,0.5336679929996535,"['M', 'm']","['Z', 'z']"
+Vin,2,2020_Mar_03_1147,Memory_script,60.105632403343755,2,Natural,2,,N66,z,True,0.9198376859994823,"['M', 'm']","['Z', 'z']"
+Vin,2,2020_Mar_03_1147,Memory_script,60.105632403343755,3,Manmade,-1,,M152,m,True,0.5324115330004133,"['M', 'm']","['Z', 'z']"
+Vin,2,2020_Mar_03_1147,Memory_script,60.105632403343755,3,Manmade,0,Incongruent,M160,z,False,-2.0,"['M', 'm']","['Z', 'z']"
+Vin,2,2020_Mar_03_1147,Memory_script,60.105632403343755,3,Manmade,1,,M91,m,True,0.42821507699954964,"['M', 'm']","['Z', 'z']"
+Vin,2,2020_Mar_03_1147,Memory_script,60.105632403343755,3,Natural,2,,N152,m,False,-2.0,"['M', 'm']","['Z', 'z']"
+Vin,2,2020_Mar_03_1147,Memory_script,60.105632403343755,3,Natural,3,,N160,m,False,-2.0,"['M', 'm']","['Z', 'z']"
