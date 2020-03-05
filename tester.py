@@ -25,7 +25,7 @@ blockDataFileName = "blockData" + expInfo['participant'] + ".txt"
 
 #initializing window
 win = visual.Window(
-    size=(1280, 800), fullscr=False, allowGUI=False,
+    size=(1280, 800), fullscr=True, allowGUI=False,
     monitor='testMonitor', color=[1,1,1], useFBO=True
 )
 
@@ -303,7 +303,8 @@ def runBlock(block, mSet, nSet, precode):
         
         if len(theseKeys) > 0:
             needPrompt = False
-            lastAns = theseKeys[-1]
+            lastAns = theseKeys[0]
+            #lastAns = theseKeys[-1]
             expInfo['Response'] = lastAns[0]
             if lastAns[0] in corrAns:
                 didCorr = True
@@ -345,7 +346,7 @@ def runBlock(block, mSet, nSet, precode):
 
 
 
-#initializing variables predefined and randomized from the Practice Set-------------------------
+#accessing variables predefined and randomized from the Practice Set-------------------------
 varSaver = open(os.path.join(pathExtension, blockDataFileName), "r")
 variables = varSaver.read()
 variables = variables.split("\n")
@@ -368,19 +369,26 @@ imgRemNotUsed = [int(i) for i in imgRemNotUsed]
 #initialization of directions
 directions = visual.TextStim(
     win = win,
-    text = "Note that on the rest of the blocks, you may see a word overlaid on the images. You should ignore the word presented. \n\nAs a reminder: \nPress " + expInfo['NaturalKeys'][0] + " when you see Natural images. \nPress " + expInfo['ManmadeKeys'][0] + " when you see Man-made images.",
+    text = "Note that on the rest of the blocks, you may see a word overlaid on the images. You should ignore the word presented. \n\nAs a reminder:" + 
+    "\nPress " + expInfo['NaturalKeys'][0] + "/" + expInfo['NaturalKeys'][1] + " when you see Natural images. \nPress " + expInfo['ManmadeKeys'][0] + "/" 
+    + expInfo['ManmadeKeys'][1] +" when you see Man-made images. \n\nPress spacebar to continue to the task.",
     color = (-1, -1, -1),
     font = 'Arial',
+    alignHoriz = 'left'
     units = 'pix',
     height = 30,
     wrapWidth = 1100,
     autoLog = False
 )
 
-#display directions
-for frameN in range(to_frames(5)):
+#displays directions before task
+event.clearEvents()
+continueButton = event.getKeys(keyList=['space'])
+while (len(continueButton) < 1):
     directions.draw()
     win.flip()
+    continueButton = event.getKeys(keyList=['space'])
+    
 
 #initializing set of stimuli with classification predefined--------------------------------------
 mStimuli = {}                                              #dictionary of all manmade stimuli - 272
@@ -404,11 +412,14 @@ for selected in imgRandShuffle:
 
 #----------------------------------------------------------------------------------------------------------------
 
-#develops block order by initially adding two trials of each of the 36 different blocks and then shuffling order
+#develops block order by initially adding two trials of each of the 36 different blocks
 blockOrder = []
 for i in range(36):
     blockOrder.append(i+1)
     blockOrder.append(i+1)
+    
+#adds 8 extra sequences to have them repeat 3 times and shuffles total order
+blockOrder.extend([1, 5, 10, 14, 19, 23, 28, 32])
 shuffle(blockOrder)
 
 #equally distributes manmade and natural stimuli to the blocks in a pseudorandom manner
@@ -430,12 +441,17 @@ varSaver.close()
 
 precode = "mtask/"                                                               #precode to access the set of images
 
-#runs first block of 90
+#runs first block of 196 images
 countdown(3)
+
+for frameN in range(ITI):
+    blank.draw()
+    win.flip()
+
 totalImgCount = 0
 totalAns = []
 i = 0
-while (totalImgCount < 180):
+while (totalImgCount < 196):
     expInfo['block'] = blockOrder[i]
     [manSelectedStimuli, natSelectedStimuli, setAns] = runBlock(totalList[i], manSelectedStimuli, natSelectedStimuli, precode)
     totalAns.extend(setAns)
@@ -457,8 +473,13 @@ print("Your accuracy was %0.2f%%" % (accuracy))
 #initializes accuracy textStim for end of first block
 accuracy1 = visual.TextStim(
     win = win,
-    text = "Your accuracy was %0.2f%%. You may take a small break for two minutes and rest your eyes. \n\n As a reminder: \nPress %s when you see Natural images. \nPress %s when you see Man-made images. \n\nPress spacebar to continue to the second half." % (accuracy, expInfo['NaturalKeys'][0], expInfo['ManmadeKeys'][0]),
+    text = "Your accuracy was %0.2f%%. You may take a small break for two minutes and rest your eyes. \n\nRemember that you may see a word " % (accuracy) + 
+    "overlaid on the images and you should ignore the word presented. \n\nAs a reminder: \nPress %s when you see Natural images. " % (expInfo['NaturalKeys'][0]) + 
+    "\nPress %s when you see Man-made images. \n\nPress spacebar to continue to the second half." % (expInfo['ManmadeKeys'][0]),
     font = 'Arial',
+    pos = (-690, 0),
+    alignHoriz = 'left',
+    #alignVert = 'top',
     units = 'pix',
     height = 30,
     wrapWidth = 1100,
@@ -476,6 +497,11 @@ while (len(continueButton) < 1):
 
 #runs second block of 90
 countdown(3)
+
+for frameN in range(ITI):
+    blank.draw()
+    win.flip()
+
 while i < len(blockOrder):
     expInfo['block'] = blockOrder[i]
     [manSelectedStimuli, natSelectedStimuli, setAns] = runBlock(totalList[i], manSelectedStimuli, natSelectedStimuli, precode)
@@ -497,21 +523,24 @@ print("Your accuracy was %0.2f%%" % (accuracy))
 #initializes textStim for end of experiment
 accuracy2 = visual.TextStim(
     win = win,
-    text = "Your accuracy across test blocks was %0.2f%%. You will now fill out a questionnaire. \n\nPlease press the spacebar to submit your data and move on to the questionnaire. Ask your experimenter to set up the questionnaire." % (accuracy),
+    text = "Your accuracy across test blocks was %0.2f%%. You will now fill out a questionnaire. \n\n Ask your experimenter to set up the questionnaire." % (accuracy),
+    pos = (-690, 0),
+    alignHoriz = 'left',
+    alignVert = 'top',
     font = 'Arial',
     units = 'pix',
     height = 30,
-    wrapWidth = 1100,
+    wrapWidth = 1400,
     color = (-1, -1, -1),
 )
 
 #displays textStim at end of experiment
 event.clearEvents()
-continueButton = event.getKeys(keyList=['space'])
-while (len(continueButton) < 1):
+theNextKey = event.getKeys(keyList=['P', 'p'])
+while (len(theNextKey) < 1):
     accuracy2.draw()
     win.flip()
-    continueButton = event.getKeys(keyList=['space'])
+    theNextKey = event.getKeys(keyList=['P', 'p'])
 
 
 

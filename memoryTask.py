@@ -26,7 +26,7 @@ blockDataFileName = "blockData" + expInfo['participant'] + ".txt"
 
 #initializing window
 win = visual.Window(
-    size=(1280, 800), fullscr=False, allowGUI=False,
+    size=(1280, 800), fullscr=True, allowGUI=False,
     monitor='testMonitor', color=[1,1,1], useFBO=True
 )
 
@@ -41,10 +41,22 @@ expInfo['MemResponse'] = ""
 expInfo['Remembered'] = False
 expInfo['MemRespTime'] = -10.0
 
-possKeys = [['A', 'a'],['L', 'l']]
-shuffle(possKeys)
-expInfo['OldKeys'] = possKeys[0]
-expInfo['NewKeys'] = possKeys[1]
+setLeft = [['A', 'a'],['S', 's']]
+setRight = [['K', 'k'],['L', 'l']]
+PossKeys = [setLeft, setRight]
+shuffle(PossKeys)
+
+ordering = [0,1]
+shuffle(ordering)
+chosenFirst = ordering[0]
+chosenSecond = ordering[1]
+#print(PossKeys[0])
+
+expInfo['defOldKeys'] = PossKeys[0][chosenFirst]
+expInfo['probOldKeys'] = PossKeys[0][chosenSecond]
+expInfo['defNewKeys'] = PossKeys[1][chosenFirst]
+expInfo['probNewKeys'] = PossKeys[1][chosenSecond]
+
 
 #initialization of fixation
 fixation = visual.TextStim(
@@ -72,6 +84,7 @@ blank = visual.TextStim(
     autoLog = False
 )
 
+"""
 #initialization of initial directions
 directions = visual.TextStim(
     win = win,
@@ -79,22 +92,80 @@ directions = visual.TextStim(
     color = (-1, -1, -1),
     autoLog = False,
 )
+"""
 
 #initialization of constantly presented directions
 consDir = visual.TextStim(
     win = win,
-    text = " = Old (previously seen);\n = New (never seen)",
+    text = "\t     = Definitely Old;\t\t\t= Probably Old \n\t     = Definitely New;\t\t= Probably New",
+    font = 'Arial',
+    units = 'pix',
+    height = 40,
+    wrapWidth = 1100,
     color = (-1, -1, -1),
-    pos = (0, 0.65),
+    pos = (0, 270),
     autoLog = False
 )
 
 #initialization of colored directions
+"""
 coloredButtons = visual.TextStim(
     win = win,
-    text = "" + expInfo['OldKeys'][1] + "/" + expInfo['OldKeys'][0] + "\n" + expInfo['NewKeys'][1] + "/" + expInfo['NewKeys'][0],
+    text = "" + expInfo['defOldKeys'][1] + "/" + expInfo['defOldKeys'][0] + 
+    "\t\t\t\t\t\t   " + expInfo['probOldKeys'][1] + "/" + expInfo['probOldKeys'][0] +
+    "\n" + expInfo['defNewKeys'][1] + "/" + expInfo['defNewKeys'][0] + 
+    "\t\t\t\t\t\t   " + expInfo['probNewKeys'][1] + "/" + expInfo['probNewKeys'][0],
+    font = 'Arial',
+    units = 'pix',
+    height = 40,
+    bold = True,
     color = 'Red',
-    pos = (-0.38, 0.65),
+    pos = (-130, 270),
+    autoLog = False,
+)"""
+
+defOldColoredButtons = visual.TextStim(
+    win = win,
+    text = "" + expInfo['defOldKeys'][1] + "/" + expInfo['defOldKeys'][0],
+    font = 'Arial',
+    units = 'pix',
+    height = 40,
+    bold = True,
+    color = 'Red',
+    pos = (-325, 297),
+    autoLog = False,
+)
+probOldColoredButtons = visual.TextStim(
+    win = win,
+    text = "" + expInfo['probOldKeys'][1] + "/" + expInfo['probOldKeys'][0],
+    font = 'Arial',
+    units = 'pix',
+    height = 40,
+    bold = True,
+    color = 'Red',
+    pos = (65, 297),
+    autoLog = False,
+)
+defNewColoredButtons = visual.TextStim(
+    win = win,
+    text = "" + expInfo['defNewKeys'][1] + "/" + expInfo['defNewKeys'][0],
+    font = 'Arial',
+    units = 'pix',
+    height = 40,
+    bold = True,
+    color = 'Red',
+    pos = (-325, 247),
+    autoLog = False,
+)
+probNewColoredButtons = visual.TextStim(
+    win = win,
+    text = "" + expInfo['probNewKeys'][1] + "/" + expInfo['probNewKeys'][0],
+    font = 'Arial',
+    units = 'pix',
+    height = 40,
+    bold = True,
+    color = 'Red',
+    pos = (65, 247),
     autoLog = False,
 )
 
@@ -120,6 +191,163 @@ endStop = visual.TextStim(
     color = (-1, -1, -1),
 )
 
+#initialization of all Instructions-------------------------------------------------------------------------------------------------------------------------
+totalDirections = []
+directionsTitle = visual.TextStim(
+    win = win,
+    text = "Instructions: \n\nPlease read these intructions carefully before you begin the experiment.",
+    color = (-1, -1, -1),
+    pos = (-690, 420),
+    units = "pix",
+    alignHoriz = 'left',
+    alignVert = 'top',
+    font = 'Arial',
+    bold = True,
+    height = 30,
+    wrapWidth = 1400,
+    autoLog = False
+)
+totalDirections.append(directionsTitle)
+
+directions2 = visual.TextStim(
+    win = win,
+    text = "In this next part of the experiment, you will be presented with images that you previously categorized as man-made or natural "
+    + "(\"Old images\") and images that you were not previously shown (\"New images\'\")",
+    color = (-1, -1, -1),
+    pos = (-690, 290),
+    units = "pix",
+    alignHoriz = 'left',
+    alignVert = 'top',
+    font = 'Arial',
+    height = 30,
+    wrapWidth = 1400,
+    autoLog = False
+)
+totalDirections.append(directions2)
+
+directions3 = visual.TextStim(
+    win = win,
+    text = "On each trial, you will have 2 seconds per image to identify whether you saw the image previously (Old) or did not see the image (New).",
+    color = (-1, -1, -1),
+    pos = (-690, 195),
+    units = "pix",
+    alignHoriz = 'left',
+    alignVert = 'top',
+    font = 'Arial',
+    height = 30,
+    wrapWidth = 1400,
+    autoLog = False
+)
+totalDirections.append(directions3)
+
+directions4 = visual.TextStim(
+    win = win,
+    text = "You will use the %s/%s and %s/%s keys to indicate whether an image is DEFINITELY or PROBABLY old, respectively." % (expInfo['defOldKeys'][1], expInfo['defOldKeys'][0], expInfo['probOldKeys'][1], expInfo['probOldKeys'][0])
+    + "\nYou will use the %s/%s and %s/%s keys to indicate whether an image is DEFINITELY or PROBABLY new, respectively." % (expInfo['defNewKeys'][1], expInfo['defNewKeys'][0], expInfo['probNewKeys'][1], expInfo['probNewKeys'][0]) + 
+    "\nThese response mappings will stay on the screen for these ratings",
+    color = (-1, -1, -1),
+    pos = (-690, 95),
+    units = "pix",
+    alignHoriz = 'left',
+    alignVert = 'top',
+    font = 'Arial',
+    height = 30,
+    wrapWidth = 1400,
+    autoLog = False
+)
+totalDirections.append(directions4)
+
+directions5 = visual.TextStim(
+    win = win,
+    text = "Always press the a/A key with your LEFT middle finger, the s/S key with your LEFT index finger, the k/K key with your RIGHT index finger, and the l/L key with your RIGHT middle finger.",
+    color = (-1, -1, -1),
+    pos = (-690, -115),
+    units = "pix",
+    alignHoriz = 'left',
+    alignVert = 'top',
+    font = 'Arial',
+    height = 30,
+    wrapWidth = 1400,
+    autoLog = False
+)
+totalDirections.append(directions5)
+
+directions6 = visual.TextStim(
+    win = win,
+    text = "Please stay focused during the experiment and try to respond within the time limits",
+    color = (-1, -1, -1),
+    pos = (-690, -215),
+    units = "pix",
+    alignHoriz = 'left',
+    alignVert = 'top',
+    font = 'Arial',
+    height = 30,
+    wrapWidth = 1400,
+    autoLog = False
+)
+totalDirections.append(directions6)
+
+directions7 = visual.TextStim(
+    win = win,
+    text = "This task has 2 blocks, which will take 9 minutes each. Once you are ready to start, press the spacebar.",
+    color = (-1, -1, -1),
+    pos = (-690, -285),
+    units = "pix",
+    alignHoriz = 'left',
+    alignVert = 'top',
+    font = 'Arial',
+    height = 30,
+    wrapWidth = 1400,
+    autoLog = False
+)
+totalDirections.append(directions7)
+
+presOldKeys = visual.TextStim(
+    win = win,
+    text = "" + expInfo['defOldKeys'][1] + "/" + expInfo['defOldKeys'][0] + "        " + expInfo['probOldKeys'][1] + "/" + expInfo['probOldKeys'][0],
+    color = 'red',
+    pos = (-472, 95),
+    units = "pix",
+    alignHoriz = 'left',
+    alignVert = 'top',
+    bold = True,
+    font = 'Arial',
+    height = 30,
+    wrapWidth = 1400,
+    autoLog = False
+)
+
+presNewKeys = visual.TextStim(
+    win = win,
+    text = "" + expInfo['defNewKeys'][1] + "/" + expInfo['defNewKeys'][0] + "        " + expInfo['probNewKeys'][1] + "/" + expInfo['probNewKeys'][0],
+    color = 'red',
+    pos = (-472, 25),
+    units = "pix",
+    alignHoriz = 'left',
+    alignVert = 'top',
+    bold = True,
+    font = 'Arial',
+    height = 30,
+    wrapWidth = 1400,
+    autoLog = False
+)
+
+pressSpacebar = visual.TextStim(
+    win = win,
+    text = "Press spacebar to continue.",
+    color = 'green',
+    pos = (-690, -370),
+    units = "pix",
+    alignHoriz = 'left',
+    alignVert = 'top',
+    font = 'Arial',
+    bold = True,
+    height = 30,
+    wrapWidth = 1100,
+    autoLog = False
+)
+
+#initializes headers of csv 
 with open(os.path.join(pathExtension, dataSetFileName), 'w', newline = '') as f:
     thewriter = csv.writer(f)
     thewriter.writerow(list(expInfo.keys()))
@@ -128,7 +356,7 @@ with open(os.path.join(pathExtension, dataSetFileName), 'w', newline = '') as f:
 def to_frames(t):                                                                 # Converts time to frames accounting for the computer's refresh rate (aka framelength); input is the desired time on screen, but the ouput is the closest multiple of the refresh rate
     return int(round(t / framelength))
 
-imgDuration = to_frames(3.0)                                                                #image duration
+imgDuration = to_frames(2.0)                                                                #image duration
 ISI = to_frames(0.5)                                                                 #Inter Stimulus Interval
 ITI = to_frames(3)                                                                      #Inter Trial Interval
 
@@ -170,29 +398,51 @@ imgOrder = [i.strip('\'') for i in imgOrder]
 print(imgOrder)
 
 memTrialOrder = []
-for i in range(270):
-    memTrialOrder.append('o')                                                   #appending 4/5 of set to be 'old'
-for i in range(90):
-    memTrialOrder.append('n')                                                   #appending 1/5 of set to be 'new'
+for i in range(392):
+    memTrialOrder.append('o')                                                   #appending 2/3 of set to be 'old'
+for i in range(132):
+    memTrialOrder.append('n')                                                   #appending 1/3 of set to be 'new'
 shuffle(memTrialOrder)
 
 precode = "mtask/"                                                               #precode to access the set of images
 
-trialClock = core.Clock()
-for frameN in range(to_frames(5)):
-    directions.draw()
-    win.flip()
+#displays all directions ---------------------------------------------------------------------------------------------------------------------
+dirCount = 0
+while dirCount < len(totalDirections):
+    event.clearEvents()
+    continueButton = event.getKeys(keyList=['space'])
+    while (len(continueButton) < 1):
+        pressSpacebar.draw()
+        totalDirections[0].draw()
+        if dirCount > 0:
+            totalDirections[1].draw()
+        if dirCount > 1:
+            totalDirections[2].draw()
+        if dirCount > 2:
+            totalDirections[3].draw()
+            presOldKeys.draw()
+            presNewKeys.draw()
+        if dirCount > 3:
+            totalDirections[4].draw()
+        if dirCount > 4:
+            totalDirections[5].draw()
+        if dirCount > 5:
+            totalDirections[6].draw()
+        win.flip()
+        continueButton = event.getKeys(keyList=['space'])
+    dirCount += 1
 
 
 randStart = 'M'
 needsPrompt = False                                                              #if participant doesn't respond fast enough, prompts them to respond faster
 
 
-
+midwayCount = 262
 for numTimes in range (2):
     countdown(3)
-    for j in range(10):
-        i = numTimes * 10 + j
+    for j in range(midwayCount):
+        trialClock = core.Clock()
+        i = numTimes * midwayCount + j
         stim = memTrialOrder[i]
         if stim == 'o':                                                             #if the stimulus is 'old'
             case = imgOrder.pop(0)[0].upper()
@@ -200,11 +450,11 @@ for numTimes in range (2):
                 name = "" + case + str(mSetImgRand.pop(0) + 1) + ".jpg"
             else:
                 name = "" + case + str(nSetImgRand.pop(0) + 1) + ".jpg"
-            corrAns = expInfo['OldKeys']
+            corrAns = [expInfo['defOldKeys'][0], expInfo['defOldKeys'][1], expInfo['probOldKeys'][0], expInfo['probOldKeys'][1]]
             expInfo['seenBefore'] = True
-        else:
+        else:                                                                       #else the stimulus is 'new'
             name = "" + randStart + str(imgRemNotUsed.pop(0)) + ".jpg"
-            corrAns = expInfo['NewKeys']
+            corrAns = [expInfo['defNewKeys'][0], expInfo['defNewKeys'][1], expInfo['probNewKeys'][0], expInfo['probNewKeys'][1]]
             expInfo['seenBefore'] = False
         
         allAns = []
@@ -223,19 +473,22 @@ for numTimes in range (2):
             for frameN in range(ISI):
                 prompt.draw()
                 win.flip()
-        theseKeys = event.getKeys(keyList=['A', 'a', 'L', 'l'])
+        theseKeys = event.getKeys(keyList=['A', 'a', 'S', 's', 'K', 'k', 'L', 'l'])
         event.clearEvents()
         
         trialClock.reset()
         frameN = 0
         while frameN < imgDuration:
-            coloredButtons.draw()
+            defOldColoredButtons.draw()
+            defNewColoredButtons.draw()
+            probOldColoredButtons.draw()
+            probNewColoredButtons.draw()
             img.draw()
             consDir.draw()
             win.flip()
             frameN += 1
         
-        theseKeys = event.getKeys(keyList=['A', 'a', 'L', 'l'], timeStamped = trialClock)
+        theseKeys = event.getKeys(keyList=['A', 'a', 'S', 's', 'K', 'k', 'L', 'l'], timeStamped = trialClock)
         print(theseKeys)
         didCorr = False
         
@@ -245,8 +498,10 @@ for numTimes in range (2):
             
         if len(theseKeys) > 0:
             needsPrompt = False
-            lastAns = theseKeys[-1]
+            lastAns = theseKeys[0]
+            #lastAns = theseKeys[-1]
             expInfo['MemResponse'] = lastAns[0]
+            expInfo['MemRespTime'] = lastAns[1]             #do we need?
             if lastAns[0] in corrAns:
                 didCorr = True
                 allAns.append(didCorr)
@@ -280,7 +535,6 @@ for numTimes in range (2):
             continueButton = event.getKeys(keyList=['space'])
 
 #displays textStim at end of experiment
-
 event.clearEvents()
 continueButton = event.getKeys(keyList=['space'])
 while (len(continueButton) < 1):

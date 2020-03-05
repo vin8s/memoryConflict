@@ -17,6 +17,8 @@ if dlg.OK == False:
 expInfo['date'] = data.getDateStr()                                             # Add a simple timestamp
 expInfo['expName'] = expName
 
+blockDataFileName = "blockData" + expInfo['participant'] + ".txt"
+
 #initializing window
 win = visual.Window(
     size=(1280, 800), fullscr=True, allowGUI=False,
@@ -89,8 +91,176 @@ expInfo['RespTime'] = -10.0
 
 possKeys = [['M', 'm'],['Z', 'z']]
 shuffle(possKeys)
-expInfo['ManmadeKeys'] = possKeys[0]
-expInfo['NaturalKeys'] = possKeys[1]
+expInfo['ManmadeKeys'] = [] #changed
+expInfo['NaturalKeys'] = [] #changed
+
+#creates directory and data files to be used to store data and analyze later on-------------------------------------------------------------------
+pathExtension = "/data/" + expInfo['participant']
+
+newpath = _thisDir + pathExtension
+if not os.path.exists(newpath):
+    os.makedirs(newpath)
+
+fileName = "reRunPracticeSet" + expInfo['participant'] + ".csv"
+
+with open(os.path.join(newpath, fileName), 'w', newline = '') as f:
+    thewriter = csv.writer(f)
+    thewriter.writerow(list(expInfo.keys()))
+    
+    
+#helper methods for use later on
+def to_frames(t):                                                                 # Converts time to frames accounting for the computer's refresh rate (aka framelength); input is the desired time on screen, but the ouput is the closest multiple of the refresh rate
+    return int(round(t / framelength))
+
+imgDuration = to_frames(1)                                                           #image duration
+ISI = to_frames(0.5)                                                                 #Inter Simulus Interval (feedback duration)
+ITI = to_frames(5.5)                                                                 #Inter Trial Interval (blank duration)
+
+def resize(x, y, newSize):                                                                 #resizes picture to all have same width of 800 px
+    multiple = newSize/x
+    new_y = y * multiple
+    return [newSize, new_y]
+
+def giveOpp(input):                                                                 #gives opposite to the input
+    if (input == 'manmade'):
+        return 'natural'
+    elif (input == 'natural'):
+        return 'manmade'
+
+def countdown(num):
+    for i in range (num):
+        number = visual.TextStim(
+            win = win,
+            text = str(num-i),
+            color = (-1, -1, -1),
+            units = 'pix',
+            font = 'Arial',
+            height = 120,
+            autoLog = False
+        )
+        
+        for frameN in range(to_frames(1)):
+            number.draw()
+            win.flip()
+            
+
+def runPracticeBlock(block, mSet, nSet, precode):
+    setNum = expInfo['block'] % 9
+    if setNum == 0:
+        setNum = 9
+    
+    promptNeeded = False
+    didCorr = True
+    trialClock = core.Clock()
+    allAns = []
+    respTime = []
+    
+    i = 0
+    
+    for trial in block:
+        expInfo['trialType'] = ""
+        if trial == "m":
+            currStim = mSet.pop(0)
+            expInfo['trialType'] = "Manmade"
+        else:
+            currStim = nSet.pop(0)
+            expInfo['trialType'] = "Natural"
+        
+        name = currStim[0]
+        expInfo['image'] = name.split(".")[0]
+        
+        img = visual.ImageStim(                                                       #initializes image stimuli to be presented
+            win = win,
+            image = precode + name,
+            units = 'pix',
+            autoLog = False
+        )
+        
+        theseKeys = event.getKeys(keyList=['M', 'm', 'Z', 'z'])
+        event.clearEvents()
+        
+        frameN = 0
+        trialClock.reset()
+        while frameN < imgDuration:
+            img.draw()
+            win.flip()
+            frameN += 1
+        
+        theseKeys = event.getKeys(keyList=['M', 'm', 'Z', 'z'], timeStamped = trialClock)
+        print(theseKeys)
+        
+        corrAns = currStim[1]
+        didCorr = False
+        
+        expInfo['Response'] = ""
+        expInfo['CorrectAns'] = False
+        expInfo['RespTime'] = -10.0
+        
+        if len(theseKeys) > 0:
+            promptNeeded = False
+            lastAns = theseKeys[-1]
+            expInfo['Response'] = lastAns[0]
+            if lastAns[0] in corrAns:
+                didCorr = True
+                allAns.append(didCorr)
+                expInfo['CorrectAns'] = didCorr
+                respTime.append(lastAns[1])
+                expInfo['RespTime'] = lastAns[1]
+            else:
+                allAns.append(didCorr)
+                expInfo['CorrectAns'] = didCorr
+                respTime.append(-1.0)
+                expInfo['RespTime'] = -1.0
+        else:
+            promptNeeded = True
+            allAns.append(False)
+            respTime.append(-2.0)
+            expInfo['CorrectAns'] = didCorr
+            expInfo['RespTime'] = -2.0
+            
+        if (promptNeeded):
+            for frameN in range(ISI):
+                prompt.draw()
+                win.flip()
+        elif (not(didCorr)):
+            for frameN in range(ISI):
+                incorrectR.draw()
+                win.flip()
+        else:
+            for frameN in range(ISI):
+                correctR.draw()
+                win.flip()
+        if i in [4, 10, 15]:
+            for frameN in range(ITI):
+                blank.draw()
+                win.flip()
+        
+        with open(os.path.join(newpath, fileName), 'a', newline = '') as f:
+            thewriter = csv.writer(f)
+            thewriter.writerow(list(expInfo.values()))
+        
+        i += 1
+        
+    print(allAns)
+    print(respTime)
+    return allAns
+        
+#accessing variables predefined and randomized from the Practice Set-------------------------
+varSaver = open(os.path.join(newpath, blockDataFileName), "r")
+variables = varSaver.read()
+variables = variables.split("\n")
+specificVar = []
+for var in variables:
+    var = var.split(':')
+    specificVar.append(var[1])
+expInfo['ManmadeKeys'] = specificVar[0].strip('][').split(', ')
+expInfo['ManmadeKeys'] = [i.strip('\'') for i in expInfo['ManmadeKeys']]
+
+expInfo['NaturalKeys'] = specificVar[1].strip('][').split(', ')
+expInfo['NaturalKeys'] = [i.strip('\'') for i in expInfo['NaturalKeys']]
+
+imgPracticeSet = specificVar[3].strip('][').split(', ')
+imgPracticeSet = [int(i) for i in imgPracticeSet]
 
 #initialization of all Instructions-------------------------------------------------------------------------------------------------------------------------
 totalDirections = []
@@ -234,184 +404,6 @@ pressSpacebar = visual.TextStim(
     autoLog = False
 )
 
-#creates directory and data files to be used to store data and analyze later on-------------------------------------------------------------------
-pathExtension = "/data/" + expInfo['participant']
-
-newpath = _thisDir + pathExtension
-if not os.path.exists(newpath):
-    os.makedirs(newpath)
-
-fileName = "PracticeSet" + expInfo['participant'] + ".csv"
-
-with open(os.path.join(newpath, fileName), 'w', newline = '') as f:
-    thewriter = csv.writer(f)
-    thewriter.writerow(list(expInfo.keys()))
-    
-    
-#helper methods for use later on
-def to_frames(t):                                                                 # Converts time to frames accounting for the computer's refresh rate (aka framelength); input is the desired time on screen, but the ouput is the closest multiple of the refresh rate
-    return int(round(t / framelength))
-
-imgDuration = to_frames(1)                                                           #image duration
-ISI = to_frames(0.5)                                                                 #Inter Simulus Interval (feedback duration)
-ITI = to_frames(5.5)                                                                 #Inter Trial Interval (blank duration)
-
-def resize(x, y, newSize):                                                                 #resizes picture to all have same width of 800 px
-    multiple = newSize/x
-    new_y = y * multiple
-    return [newSize, new_y]
-
-def giveOpp(input):                                                                 #gives opposite to the input
-    if (input == 'manmade'):
-        return 'natural'
-    elif (input == 'natural'):
-        return 'manmade'
-
-def countdown(num):
-    for i in range (num):
-        number = visual.TextStim(
-            win = win,
-            text = str(num-i),
-            color = (-1, -1, -1),
-            units = 'pix',
-            font = 'Arial',
-            height = 120,
-            autoLog = False
-        )
-        
-        for frameN in range(to_frames(1)):
-            number.draw()
-            win.flip()
-            
-
-def runPracticeBlock(block, mSet, nSet, precode):
-    setNum = expInfo['block'] % 9
-    if setNum == 0:
-        setNum = 9
-    
-    promptNeeded = False
-    didCorr = True
-    trialClock = core.Clock()
-    allAns = []
-    respTime = []
-    
-    i = 0
-    
-    for trial in block:
-        expInfo['trialType'] = ""
-        if trial == "m":
-            currStim = mSet.pop(0)
-            expInfo['trialType'] = "Manmade"
-        else:
-            currStim = nSet.pop(0)
-            expInfo['trialType'] = "Natural"
-        
-        name = currStim[0]
-        expInfo['image'] = name.split(".")[0]
-        
-        img = visual.ImageStim(                                                       #initializes image stimuli to be presented
-            win = win,
-            image = precode + name,
-            units = 'pix',
-            autoLog = False
-        )
-        
-        #img.size = resize(img.size[0], img.size[1], 800)
-        """
-        if i in [5, 11, 16]:
-            if (promptNeeded):
-                for frameN in range(ITI):
-                    prompt.draw()
-                    win.flip()
-            else:
-                for frameN in range(ITI):
-                    blank.draw()
-                    win.flip()
-        else:
-            if (promptNeeded):
-                for frameN in range(ISI):
-                    prompt.draw()
-                    win.flip()
-            elif (not(didCorr)):
-                for frameN in range(ISI):
-                    incorrectR.draw()
-                    win.flip()
-            else:
-                for frameN in range(ISI):
-                    blank.draw()
-                    win.flip()
-        """
-        theseKeys = event.getKeys(keyList=['M', 'm', 'Z', 'z'])
-        event.clearEvents()
-        
-        frameN = 0
-        trialClock.reset()
-        while frameN < imgDuration:
-            img.draw()
-            win.flip()
-            frameN += 1
-        
-        theseKeys = event.getKeys(keyList=['M', 'm', 'Z', 'z'], timeStamped = trialClock)
-        print(theseKeys)
-        
-        corrAns = currStim[1]
-        didCorr = False
-        
-        expInfo['Response'] = ""
-        expInfo['CorrectAns'] = False
-        expInfo['RespTime'] = -10.0
-        
-        if len(theseKeys) > 0:
-            promptNeeded = False
-            lastAns = theseKeys[0]
-            #lastAns = theseKeys[-1]
-            expInfo['Response'] = lastAns[0]
-            if lastAns[0] in corrAns:
-                didCorr = True
-                allAns.append(didCorr)
-                expInfo['CorrectAns'] = didCorr
-                respTime.append(lastAns[1])
-                expInfo['RespTime'] = lastAns[1]
-            else:
-                allAns.append(didCorr)
-                expInfo['CorrectAns'] = didCorr
-                respTime.append(-1.0)
-                expInfo['RespTime'] = -1.0
-        else:
-            promptNeeded = True
-            allAns.append(False)
-            respTime.append(-2.0)
-            expInfo['CorrectAns'] = didCorr
-            expInfo['RespTime'] = -2.0
-            
-        if (promptNeeded):
-            for frameN in range(ISI):
-                prompt.draw()
-                win.flip()
-        elif (not(didCorr)):
-            for frameN in range(ISI):
-                incorrectR.draw()
-                win.flip()
-        else:
-            for frameN in range(ISI):
-                correctR.draw()
-                win.flip()
-        if i in [4, 10, 15]:
-            for frameN in range(ITI):
-                blank.draw()
-                win.flip()
-        
-        with open(os.path.join(newpath, fileName), 'a', newline = '') as f:
-            thewriter = csv.writer(f)
-            thewriter.writerow(list(expInfo.values()))
-        
-        i += 1
-        
-    print(allAns)
-    print(respTime)
-    return allAns
-        
-
 #initializing set of stimuli with classification predefined--------------------------------------
 
 mStimuli = {}                                              #dictionary of all manmade stimuli - 272
@@ -426,43 +418,20 @@ for i in range(272):                                       #loops through 272 to
     nat = ['N' + str(num) + '.jpg', expInfo['NaturalKeys'], 'natural']
     nStimuli[i] = nat
     
-manSelectedStimuli = []                                       #list of the randomly selected manmade stimuli - 196
-natSelectedStimuli = []                                       #list of the randomly selected natural stimuli - 196
-
-imgRandShuffle = random.sample(range(len(mStimuli)), 196)     #randomly access 196 numbers from 272 to use in the loop to select the 196 stimuli
-imgNotSelected = [i for i in range(272)]
-
-for selected in imgRandShuffle:
-    manSelectedStimuli.append(mStimuli[selected])
-    natSelectedStimuli.append(nStimuli[selected])
-    imgNotSelected.remove(selected)
-    
-shuffle(imgNotSelected)
-
-varSaveFile = "blockData" + expInfo['participant'] + ".txt"
-varSaver = open(os.path.join(newpath, varSaveFile), 'w')
-varSaver.write("ManmadeKeys:" + str(expInfo['ManmadeKeys']))
-varSaver.write("\nNaturalKeys:" + str(expInfo['NaturalKeys']))
-varSaver.write("\nimgRandShuffle:" + str(imgRandShuffle))
-varSaver.write("\nPracticeSet:" + str(imgNotSelected[0:10]))
 
 manPracticeStimuli = []
 natPracticeStimuli = []
 
-for i in range(10):
-    selected = imgNotSelected.pop(0)
+for selected in imgPracticeSet:
     manPracticeStimuli.append(mStimuli[selected])
     natPracticeStimuli.append(nStimuli[selected])
-    
-varSaver.write("\nRemainingNotUsed:" + str(imgNotSelected))
-varSaver.close()
 
 
 
 #runs the practice block 
 precode = "mtask/"                                                               #precode to access the set of images
 
-practiceBlock = ['m', 'm', 'm', 'm', 'm', 'm', 'm', 'm', 'm', 'm', 'n', 'n', 'n', 'n', 'n', 'n', 'n', 'n', 'n', 'n',]
+practiceBlock = ['m', 'm', 'm', 'm', 'm', 'm', 'm', 'm', 'm', 'm', 'n', 'n', 'n', 'n', 'n', 'n', 'n', 'n', 'n', 'n']
 shuffle(practiceBlock)
 
 #displays all directions ---------------------------------------------------------------------------------------------------------------------
@@ -491,10 +460,6 @@ while dirCount < len(totalDirections):
 
 #begins practice task----------------------------------------------------------------------------------------------------------
 countdown(3)
-
-for frameN in range(ITI):
-    blank.draw()
-    win.flip()
 
 totalAns = runPracticeBlock(practiceBlock, manPracticeStimuli, natPracticeStimuli, precode)
 
@@ -528,4 +493,3 @@ while (len(nextTaskKey) < 1):
     nextTaskKey = event.getKeys(keyList=['P', 'p'])
 
 win.close()
-
